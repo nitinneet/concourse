@@ -1,25 +1,26 @@
-# fly -t main set-pipeline -p hello-world-sample -c pipeline.yml
-# fly -t main unpause-pipeline -p hello-world-sample
-# fly -t main trigger-job -j hello-world-sample/my-job
+# fly -t main set-pipeline -p docker-login-pipeline -c hublogin.yml
+# fly -t main set-pipeline -p docker-login-pipeline -c hublogin.yml --load-vars-from=secrets.yml
+# fly -t main set-pipeline -p docker-login-pipeline -c hublogin.yml --var "USERNAME=nitinneet23@gmail.com" --var "PASSWORD=2310shurlinitin"
+# fly -t main trigger-job -j docker-login-pipeline/docker-login -v "docker-username=nitinneet23@gmail.com" -v "docker-password=2310shurlinitin"
 
-resources:
-- name: my-git-repo
-  type: git
-  source:
-    uri: https://github.com/nitinneet/concourse.git
-    branch: main
+# fly -t main unpause-pipeline -p docker-login-pipeline
+# fly -t main trigger-job -j docker-login-pipeline/docker-login
 
 jobs:
-- name: my-job
+- name: docker-login
   plan:
-  - get: my-git-repo
-    trigger: true
-  - task: my-task
+  - task: login
     config:
-      platform: mac
+      platform: linux
       image_resource:
         type: docker-image
-        source: {repository: alpine}
+        source: {repository: docker, tag: stable}
+      params:
+        USERNAME: nitinneet23@gmail.com
+        PASSWORD: 2310shurlinitin
       run:
-        path: echo
-        args: ["Hello, Concourse!"]
+        path: /bin/sh
+        args:
+          - -exc
+          - |
+            echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
