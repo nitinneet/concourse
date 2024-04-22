@@ -1,0 +1,25 @@
+# fly -t main set-pipeline -p hello-world-sample -c pipeline.yml
+# fly -t main unpause-pipeline -p hello-world-sample
+# fly -t main trigger-job -j hello-world-sample/my-job
+
+resources:
+- name: my-git-repo
+  type: git
+  source:
+    uri: https://github.com/nitinneet/concourse.git
+    branch: main
+
+jobs:
+- name: my-job
+  plan:
+  - get: my-git-repo
+    trigger: true
+  - task: my-task
+    config:
+      platform: mac
+      image_resource:
+        type: docker-image
+        source: {repository: alpine}
+      run:
+        path: echo
+        args: ["Hello, Concourse!"]
